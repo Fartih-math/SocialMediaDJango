@@ -125,5 +125,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 CSRF_TRUSTED_ORIGINS = [
-    'https://your-app-name.up.railway.app',
-    'http://your-app-name.up.railway.app',
+    'socialmedia-production.up.railway.app',
+    'socialmedia-production.up.railway.app',
