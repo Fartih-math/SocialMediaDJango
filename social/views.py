@@ -8,9 +8,6 @@ from .models import UserProfile, Follow, UserLike
 from .forms import RegistrationForm, ProfileEditForm
 
 def landing(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-
     login_error = None
     register_form = RegistrationForm()
 
