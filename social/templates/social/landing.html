@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome - Social Media</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            width: 900px;
+            max-width: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .form-box {
+            flex: 1;
+            padding: 40px;
+            min-width: 250px;
+        }
+        .login-box { background: #f8f9ff; }
+        .register-box { background: white; }
+        h2 { margin-top: 0; color: #333; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        button:hover { background: #5a67d8; }
+        .error { color: red; font-size: 12px; margin-top: -10px; margin-bottom: 10px; }
+        @media (max-width: 700px) {
+            .container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="form-box login-box">
+        <h2>Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            {% if login_error %}
+                <div class="error">{{ login_error }}</div>
+            {% endif %}
+            <button type="submit" name="login_submit">Login</button>
+        </form>
+    </div>
+
+    <div class="form-box register-box">
+        <h2>Register</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+            <select name="account_type">
+                <option value="twitter">Twitter Style</option>
+                <option value="instagram">Instagram Style</option>
+                <option value="facebook">Facebook Style</option>
+            </select>
+            <button type="submit" name="register_submit">Register</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

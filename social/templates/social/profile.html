@@ -1,0 +1,185 @@
+{% extends 'social/base.html' %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 40px auto;
+    }
+    .profile-header {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    .profile-cover {
+        height: 150px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .profile-info {
+        padding: 0 30px 30px 30px;
+        text-align: center;
+        position: relative;
+    }
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        background: #667eea;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -60px;
+        border: 5px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 20px;
+    }
+    .avatar-letter {
+        font-size: 52px;
+        font-weight: bold;
+        color: white;
+    }
+    .profile-name {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a1a2e;
+        margin-bottom: 8px;
+    }
+    .profile-type {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #4f46e5;
+        padding: 4px 16px;
+        border-radius: 40px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+    .stats-grid {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    .stat-card {
+        text-align: center;
+        background: #f8f9ff;
+        padding: 12px 24px;
+        border-radius: 20px;
+        min-width: 100px;
+    }
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a1a2e;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+        margin-top: 4px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .btn-primary, .btn-like {
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-primary {
+        background: #1877f2;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #155db0;
+    }
+    .btn-primary.unfollow {
+        background: #dc3545;
+    }
+    .btn-primary.unfollow:hover {
+        background: #b02a37;
+    }
+    .btn-like {
+        background: #e0245e;
+        color: white;
+    }
+    .btn-like:hover {
+        background: #b01b4b;
+    }
+    .btn-like.unlike {
+        background: #6c757d;
+    }
+    hr {
+        margin: 30px 0;
+        border: none;
+        border-top: 1px solid #eee;
+    }
+    @media (max-width: 600px) {
+        .profile-info { padding: 0 20px 20px 20px; }
+        .avatar-circle { width: 90px; height: 90px; margin-top: -45px; }
+        .avatar-letter { font-size: 40px; }
+        .profile-name { font-size: 22px; }
+        .stats-grid { gap: 20px; }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-cover"></div>
+        <div class="profile-info">
+            <div class="avatar-circle">
+                <div class="avatar-letter">
+                    {{ profile_user.profile.avatar_letter|default:profile_user.username.0|upper }}
+                </div>
+            </div>
+            <div class="profile-name">{{ profile_user.username }}</div>
+            <div class="profile-type">{{ profile_user.profile.get_account_type_display }}</div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ profile_user.followers.count }}</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ profile_user.following.count }}</div>
+                    <div class="stat-label">Following</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ profile_user.liked_by.count }}</div>
+                    <div class="stat-label">Likes received</div>
+                </div>
+            </div>
+
+            {% if user != profile_user %}
+                <div class="action-buttons">
+                    <form action="{% url 'follow' profile_user.username %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        {% if is_following %}
+                            <button type="submit" class="btn-primary unfollow">Unfollow</button>
+                        {% else %}
+                            <button type="submit" class="btn-primary">Follow</button>
+                        {% endif %}
+                    </form>
+                    <form action="{% url 'like_user' profile_user.username %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        {% if is_liked %}
+                            <button type="submit" class="btn-like unlike">Unlike</button>
+                        {% else %}
+                            <button type="submit" class="btn-like">Like</button>
+                        {% endif %}
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

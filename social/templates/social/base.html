@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Social Rank</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .navbar-right {
+            position: relative;
+        }
+        .avatar-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: 40px;
+            transition: background 0.2s;
+        }
+        .avatar-dropdown:hover {
+            background: #f0f2f5;
+        }
+        .avatar-large {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 55px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 160px;
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-menu a, .dropdown-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: #333;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .dropdown-menu a:hover, .dropdown-menu button:hover {
+            background: #f0f2f5;
+        }
+        .content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="{% url 'dashboard' %}" class="navbar-brand">SocialRank</a>
+        <div class="navbar-right">
+            <div class="avatar-dropdown" id="dropdownToggle">
+                <span class="avatar-large">{{ user.profile.avatar_letter|default:user.username.0|upper }}</span>
+                <span>{{ user.username }}</span>
+                <span>▼</span>
+            </div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="{% url 'profile' user.id %}">My Profile</a>
+                <a href="{% url 'profile_edit' %}">Edit Profile</a>
+                <form action="{% url 'logout' %}" method="post" style="margin:0">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        const toggle = document.getElementById('dropdownToggle');
+        const menu = document.getElementById('dropdownMenu');
+
+        toggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

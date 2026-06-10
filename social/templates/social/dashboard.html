@@ -1,0 +1,239 @@
+{% extends 'social/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .ranking-table th, .ranking-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    .ranking-table th {
+        background: #1877f2;
+        color: white;
+    }
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .username-link {
+        text-decoration: none;
+        color: #1a1a2e;
+        font-weight: 600;
+        transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .username-link:hover {
+        color: #1877f2;
+        text-decoration: none;
+    }
+    .action-icons {
+        display: flex;
+        gap: 12px;
+    }
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.4rem;
+        transition: transform 0.1s, opacity 0.2s;
+        padding: 4px;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-btn:hover {
+        transform: scale(1.1);
+    }
+    .icon-follow {
+        color: #42b72a;
+    }
+    .icon-follow.unfollow {
+        color: #dc3545;
+    }
+    .icon-like {
+        color: #e0245e;
+    }
+    .icon-like.unlike {
+        color: #6c757d;
+    }
+    .container-full {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h2 {
+        margin-top: 0;
+    }
+    .filter-info {
+        background: #e7f3ff;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #1877f2;
+    }
+</style>
+
+<div class="container-full">
+    <h2>Dashboard - {{ user.profile.get_account_type_display }} Community</h2>
+    <div class="filter-info">
+        <i class="fas fa-filter"></i> Showing only users with <strong>{{ user.profile.get_account_type_display }}</strong> account type.
+    </div>
+
+    <table class="ranking-table">
+        <thead>
+            <tr><th>Rank</th><th>User</th><th>Followers</th><th>Likes Received</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for user_obj, score in ranking %}
+            <tr id="user-row-{{ user_obj.id }}">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <a href="{% url 'profile' user_obj.id %}" class="username-link">
+                        <span class="avatar">{{ user_obj.profile.avatar_letter|default:user_obj.username.0|upper }}</span>
+                        {{ user_obj.username }}
+                    </a>
+                </td>
+                <td class="follower-count">{{ user_obj.followers.count }}</td>
+                <td class="likes-count">{{ user_obj.liked_by.count }}</td>
+                <td class="action-icons">
+                    <form action="{% url 'follow' user_obj.id %}" method="post" class="follow-form">
+                        {% csrf_token %}
+                        {% if user_obj.is_following %}
+                            <button type="submit" class="icon-btn icon-follow unfollow" title="Unfollow">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        {% else %}
+                            <button type="submit" class="icon-btn icon-follow" title="Follow">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        {% endif %}
+                    </form>
+                    <form action="{% url 'like_user' user_obj.id %}" method="post" class="like-form">
+                        {% csrf_token %}
+                        {% if user_obj.is_liked %}
+                            <button type="submit" class="icon-btn icon-like unlike" title="Unlike">
+                                <i class="fas fa-heart-broken"></i>
+                            </button>
+                        {% else %}
+                            <button type="submit" class="icon-btn icon-like" title="Like">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No other users with this account type yet. Invite friends!</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        document.querySelectorAll('.follow-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const url = this.action;
+                const btn = this.querySelector('.icon-follow');
+                const isCurrentlyFollowing = btn.classList.contains('unfollow');
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (response.ok) {
+                    if (isCurrentlyFollowing) {
+                        btn.classList.remove('unfollow');
+                        btn.innerHTML = '<i class="fas fa-user-plus"></i>';
+                        btn.title = 'Follow';
+                        const countCell = this.closest('tr').querySelector('.follower-count');
+                        countCell.innerText = parseInt(countCell.innerText) - 1;
+                    } else {
+                        btn.classList.add('unfollow');
+                        btn.innerHTML = '<i class="fas fa-user-minus"></i>';
+                        btn.title = 'Unfollow';
+                        const countCell = this.closest('tr').querySelector('.follower-count');
+                        countCell.innerText = parseInt(countCell.innerText) + 1;
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.like-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const url = this.action;
+                const btn = this.querySelector('.icon-like');
+                const isCurrentlyLiked = btn.classList.contains('unlike');
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (response.ok) {
+                    if (isCurrentlyLiked) {
+                        btn.classList.remove('unlike');
+                        btn.innerHTML = '<i class="fas fa-heart"></i>';
+                        btn.title = 'Like';
+                        const likesCell = this.closest('tr').querySelector('.likes-count');
+                        likesCell.innerText = parseInt(likesCell.innerText) - 1;
+                    } else {
+                        btn.classList.add('unlike');
+                        btn.innerHTML = '<i class="fas fa-heart-broken"></i>';
+                        btn.title = 'Unlike';
+                        const likesCell = this.closest('tr').querySelector('.likes-count');
+                        likesCell.innerText = parseInt(likesCell.innerText) + 1;
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
