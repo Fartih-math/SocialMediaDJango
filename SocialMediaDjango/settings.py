@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,10 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*6e^_o=*3q4mbloowa@v-31n*f3m@)(m1yiv__2s16u*&*e4_w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+import os
 
-ALLOWED_HOSTS = []
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['*']
 
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-fallback-key')
 
 # Application definition
 
@@ -120,3 +123,4 @@ LOGIN_REDIRECT_URL = 'dashboard '
 LOGOUT_REDIRECT_URL = 'landing'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
