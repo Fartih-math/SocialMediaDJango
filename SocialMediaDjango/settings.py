@@ -11,25 +11,21 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*6e^_o=*3q4mbloowa@v-31n*f3m@)(m1yiv__2s16u*&*e4_w'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-*6e^_o=*3q4mbloowa@v-31n*f3m@)(m1yiv__2s16u*&*e4_w')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-import os
-
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-fallback-key')
+ALLOWED_HOSTS = ['*']  # Allow any host; Railway provides its own domain
 
 # Application definition
 
@@ -45,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -72,21 +69,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SocialMediaDjango.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Database - use PostgreSQL if DATABASE_URL is set (Railway provides it), otherwise SQLite
+import dj_database_url
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,32 +92,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-STATIC_URL = 'static/'
-LOGIN_REDIRECT_URL = 'dashboard '
-LOGOUT_REDIRECT_URL = 'landing'
+# Media files (user uploaded content, if any)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Login/Logout redirects
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'landing'
+
+# CSRF & Security settings for Railway (HTTPS)
 CSRF_TRUSTED_ORIGINS = [
-    'socialmedia-production.up.railway.app',
-    'socialmedia-production.up.railway.app',
+    'https://socialmedia-production.up.railway.app',
+    'https://*.up.railway.app',  # Allow any Railway subdomain
 ]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Use secure headers when behind proxy (Railway)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+
+# Optional: if you don't want to redirect all HTTP to HTTPS, set to False
+# SECURE_SSL_REDIRECT = False  # (if Railway handles SSL redirect)
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
